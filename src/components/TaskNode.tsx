@@ -17,7 +17,13 @@ export default function TaskNode({ data }: NodeProps<TaskNodeData>) {
     in_progress: 'En cours',
     completed: 'Terminée',
   }
-  const statusLabel = statusLabels[data.status] ?? String(data.status ?? '—')
+  let statusLabel = statusLabels[data.status] ?? String(data.status ?? '—')
+  if (data.status === 'completed' && !data.userValidated) {
+    statusLabel = 'Terminée (IA)'
+  }
+  if (data.userValidated) {
+    statusLabel = 'Validée par toi'
+  }
 
   return (
     <motion.div
@@ -56,6 +62,12 @@ export default function TaskNode({ data }: NodeProps<TaskNodeData>) {
           Ouvrir les détails & l’aide
         </button>
 
+        {data.status === 'completed' && !data.userValidated && (
+          <p className="text-[9px] leading-3 text-violet-300/90">
+            L’IA a produit une réponse — coche uniquement si tu valides cette étape.
+          </p>
+        )}
+
         <label className="flex items-center gap-2 cursor-pointer select-none border-t border-white/5 pt-2">
           <input
             type="checkbox"
@@ -72,7 +84,7 @@ export default function TaskNode({ data }: NodeProps<TaskNodeData>) {
             }}
             className="rounded border-blue-500/50 text-blue-600 focus:ring-blue-500 shrink-0"
           />
-          <span className="text-gray-400 text-[10px] leading-tight">Fait (perso)</span>
+          <span className="text-gray-400 text-[10px] leading-tight">Je valide cette étape</span>
         </label>
 
         <p className="text-blue-400/90 text-[10px] truncate">Agent : {data.agent}</p>

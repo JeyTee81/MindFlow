@@ -173,26 +173,49 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
 
       const row = missionRow as typeof missionRow & { planner_snapshot?: unknown }
 
+      const tasksMapped = (tasksRows || []).map((t) => {
+        const tr = t as typeof t & { user_validated?: boolean }
+        return {
+          id: tr.id,
+          title: tr.title,
+          description: tr.description,
+          status: tr.status as Task['status'],
+          agent: tr.agent,
+          reasoning: tr.reasoning ?? undefined,
+          result: tr.result ?? undefined,
+          userValidated: Boolean(tr.user_validated),
+          dependencies: dependenciesByTaskId.get(tr.id) || [],
+        }
+      })
+
+      const allUserValidated =
+        tasksMapped.length > 0 && tasksMapped.every((t) => t.userValidated)
+      let missionStatus = row.status as Mission['status']
+
+      /** Aligne le statut mission : terminé seulement si tout est coché par l’utilisateur. */
+      if (allUserValidated && missionStatus !== 'completed') {
+        const { error: upErr } = await supabase
+          .from('missions')
+          .update({ status: 'completed' })
+          .eq('id', missionId)
+          .eq('user_id', userId)
+        if (!upErr) missionStatus = 'completed'
+      } else if (!allUserValidated && missionStatus === 'completed') {
+        const { error: upErr } = await supabase
+          .from('missions')
+          .update({ status: 'executing' })
+          .eq('id', missionId)
+          .eq('user_id', userId)
+        if (!upErr) missionStatus = 'executing'
+      }
+
       const missionResponse: Mission = {
         id: row.id,
         objective: row.objective,
-        status: row.status as Mission['status'],
+        status: missionStatus,
         createdAt: row.created_at,
         plannerSnapshot: row.planner_snapshot ?? undefined,
-        tasks: (tasksRows || []).map((t) => {
-          const tr = t as typeof t & { user_validated?: boolean }
-          return {
-            id: tr.id,
-            title: tr.title,
-            description: tr.description,
-            status: tr.status as Task['status'],
-            agent: tr.agent,
-            reasoning: tr.reasoning ?? undefined,
-            result: tr.result ?? undefined,
-            userValidated: Boolean(tr.user_validated),
-            dependencies: dependenciesByTaskId.get(tr.id) || [],
-          }
-        }),
+        tasks: tasksMapped,
       }
 
       set({ currentMission: missionResponse, missionLoadError: null })

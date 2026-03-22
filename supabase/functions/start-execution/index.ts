@@ -295,19 +295,20 @@ serve(async (req) => {
     const allDependsOnIds = Array.from(
       new Set(depsRows.map((d) => d.depends_on_task_id))
     )
+    /** Prérequis = cochés par l’utilisateur (`user_validated`), pas le seul statut IA. */
     const depStatuses = allDependsOnIds.length
-      ? await restGet<{ id: string; status: string }>(
+      ? await restGet<{ id: string; user_validated: boolean }>(
         'tasks',
-        `id=in.(${allDependsOnIds.join(',')})&select=id,status`
+        `id=in.(${allDependsOnIds.join(',')})&select=id,user_validated`
       )
       : []
 
-    const completedSet = new Set(depStatuses.filter((t) => t.status === 'completed').map((t) => t.id))
+    const validatedSet = new Set(depStatuses.filter((t) => t.user_validated).map((t) => t.id))
 
     const nowEligible = plannedTasks.find((t) => {
       const deps = depsByTaskId.get(t.id) || []
       if (deps.length === 0) return true
-      return deps.every((depId) => completedSet.has(depId))
+      return deps.every((depId) => validatedSet.has(depId))
     })
 
     if (!nowEligible) {
@@ -416,13 +417,14 @@ serve(async (req) => {
         }
       )
 
-      // Step 5: Mark mission completed if all tasks are completed.
-      const taskStatuses = await restGet<{ status: string }>(
+      // Step 5: Mission « completed » seulement si toutes les tâches sont validées par l’utilisateur.
+      const taskRowsAfter = await restGet<{ user_validated: boolean }>(
         'tasks',
-        `mission_id=eq.${missionId}&select=status`
+        `mission_id=eq.${missionId}&select=user_validated`
       )
-      const allCompleted = taskStatuses.length > 0 && taskStatuses.every((t) => t.status === 'completed')
-      if (allCompleted) {
+      const allUserValidated =
+        taskRowsAfter.length > 0 && taskRowsAfter.every((t) => t.user_validated)
+      if (allUserValidated) {
         await restPatchSingle(
           'missions',
           `id=eq.${missionId}&user_id=eq.${userId}&select=id`,
@@ -431,7 +433,7 @@ serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ progress: true, completed: allCompleted, taskId: nowEligible.id }),
+        JSON.stringify({ progress: true, completed: allUserValidated, taskId: nowEligible.id }),
         { headers: { 'Content-Type': 'application/json' } }
       )
     } catch (e) {

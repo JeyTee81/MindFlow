@@ -61,12 +61,21 @@ export default function MissionCalendarView({ mission }: { mission: Mission }) {
                     >
                       <span
                         className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                          t.status === 'completed' || t.userValidated
+                          t.userValidated
                             ? 'bg-emerald-500'
-                            : t.status === 'in_progress'
-                              ? 'bg-amber-400'
-                              : 'bg-blue-500'
+                            : t.status === 'completed'
+                              ? 'bg-violet-500'
+                              : t.status === 'in_progress'
+                                ? 'bg-amber-400'
+                                : 'bg-blue-500'
                         }`}
+                        title={
+                          t.userValidated
+                            ? 'Validé par toi'
+                            : t.status === 'completed'
+                              ? 'Réponse IA — pas encore validée'
+                              : undefined
+                        }
                       />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-gray-100">{t.title}</p>

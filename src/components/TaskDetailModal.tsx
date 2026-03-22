@@ -207,7 +207,7 @@ export default function TaskDetailModal() {
                 className="mt-0.5 rounded border-blue-500/50 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-200">
-                Marquer comme fait (validation personnelle) — indépendamment de l’exécution IA.
+                Je valide cette étape (obligatoire pour débloquer la suite) — indépendant du texte généré par l’IA.
               </span>
             </label>
           </div>

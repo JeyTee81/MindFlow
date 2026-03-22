@@ -68,6 +68,11 @@ Le comportement visible côté utilisateur correspond aux étapes suivantes :
 3. Quand toutes les tâches sont `completed` :
    - le statut de mission passe à `completed`
 
+### Validation des étapes (règle produit)
+
+- Seule la case **« Je valide cette étape »** (`user_validated` en base) compte comme étape validée pour le **déblocage** des suivantes (NBA, calendrier, debrief, exécution IA Premium).
+- Le statut **`completed`** après exécution IA indique une **réponse produite**, pas une validation utilisateur : l’UI le distingue (« Terminée (IA) », bordure violette sur le graphe) jusqu’à ce que l’utilisateur coche.
+
 ### Freemium / Premium (règles produit)
 
 - **Gratuit** : jusqu’à **10 générations de plan IA par mois** (quota mensuel UTC, champs `profiles.ai_runs_used` + `profiles.ai_quota_month`). Permet aux testeurs de créer plusieurs missions et de se projeter. Implémenté dans `create-mission` et `src/lib/billing.ts` (`FREE_MONTHLY_AI_RUNS`).

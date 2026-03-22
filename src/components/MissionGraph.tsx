@@ -54,6 +54,12 @@ function MissionFlowInner() {
 
     const taskNodes: Node[] = currentMission.tasks.map((task, index) => {
       const st = task.status in statusColors ? task.status : 'planned'
+      let statusColor = statusColors[st] ?? statusColors.planned
+      if (task.userValidated) {
+        statusColor = '#22c55e'
+      } else if (task.status === 'completed' && !task.userValidated) {
+        statusColor = '#a78bfa'
+      }
       return {
         id: task.id,
         type: 'task',
@@ -64,7 +70,7 @@ function MissionFlowInner() {
         data: {
           ...task,
           status: st as Task['status'],
-          statusColor: statusColors[st] ?? statusColors.planned,
+          statusColor,
         },
       }
     })

@@ -1,8 +1,12 @@
 import type { Task } from '../store/useMissionStore'
 
-/** Tâche considérée comme « faite » pour le déblocage des suivantes. */
+/**
+ * Tâche considérée comme « faite » pour le déblocage des suivantes (NBA, calendrier, debrief).
+ * Uniquement la validation utilisateur — pas le statut IA (`completed`), pour éviter toute
+ * avancée « automatique » sans clic explicite.
+ */
 export function isTaskDoneForFlow(t: Task): boolean {
-  return t.status === 'completed' || Boolean(t.userValidated)
+  return Boolean(t.userValidated)
 }
 
 /**
@@ -113,7 +117,7 @@ export function buildDailyDebrief(
     )
   } else {
     bullets.push(
-      `Pour aujourd’hui, le plan prévoit ${todayTasks.length} tâche(s) : ${doneToday.length} déjà cochée(s) ou terminée(s), ${pendingToday.length} encore à faire.`
+      `Pour aujourd’hui, le plan prévoit ${todayTasks.length} tâche(s) : ${doneToday.length} déjà cochée(s) par toi, ${pendingToday.length} encore à faire.`
     )
     if (pendingToday.length > 0) {
       bullets.push(
@@ -132,7 +136,8 @@ export function buildDailyDebrief(
   const allDone = tasks.length > 0 && tasks.every(done)
   let summary = `Objectif du projet : ${missionObjective.slice(0, 120)}${missionObjective.length > 120 ? '…' : ''}`
   if (allDone) {
-    summary = 'Toutes les tâches du plan sont bouclées. Pense à valider les derniers points ou à créer une mission de suivi si besoin.'
+    summary =
+      'Toutes les étapes sont cochées (validation perso). Tu peux clôturer le sujet ou lancer une mission de suivi si besoin.'
   } else if (pendingToday.length === 0 && todayTasks.length > 0) {
     summary = 'Journée prévue : tout ce qui était planifié pour aujourd’hui est coché. Tu peux enchaîner sur la prochaine action ou anticiper demain.'
   } else if (pendingToday.length > 0) {
