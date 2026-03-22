@@ -77,8 +77,8 @@ Le comportement visible côté utilisateur correspond aux étapes suivantes :
 
 - **Gratuit** : jusqu’à **10 générations de plan IA par mois** (quota mensuel UTC, champs `profiles.ai_runs_used` + `profiles.ai_quota_month`). Permet aux testeurs de créer plusieurs missions et de se projeter. Implémenté dans `create-mission` et `src/lib/billing.ts` (`FREE_MONTHLY_AI_RUNS`).
 - **Premium** : **planner illimité** ; **exécution des tâches** (`start-execution`) réservée au profil `premium` (vérifié en Edge Function).
-- **Merchant** : page `/upgrade` — définir `VITE_LEMON_CHECKOUT_URL` vers l’URL de checkout ; les webhooks du merchant doivent mettre à jour `profiles.subscription_tier` (à brancher).
-- **Navigation** : `/` accueil, `/missions` liste, `/mission/:id` tableau de bord, `/upgrade` offre Premium, `/auth` connexion.
+- **Merchant / Premium** : pas de checkout public sur `/upgrade` ; accès Premium sur demande. Côté technique, `profiles.subscription_tier` est mis à jour par le process (interne, pas exposé sur le site).
+- **Navigation** : `/` accueil, `/missions` liste, `/mission/:id` tableau de bord, `/upgrade` présentation Freemium / Premium, `/auth` connexion.
 
 ### Vision produit & roadmap
 

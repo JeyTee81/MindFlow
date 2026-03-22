@@ -1,94 +1,98 @@
 import { motion } from 'framer-motion'
 
-const checkoutUrl = import.meta.env.VITE_LEMON_CHECKOUT_URL as string | undefined
-
 /**
- * Page Premium — branchement merchant (ex. Lemon Squeezy).
- * Définir VITE_LEMON_CHECKOUT_URL dans .env.local vers l’URL de checkout du produit.
+ * Page Premium — présentation des offres uniquement.
+ * L’activation technique (Supabase, etc.) ne doit pas figurer ici (surface publique).
+ * Optionnel : VITE_CONTACT_EMAIL = adresse pour un lien mailto « Demander l’accès ».
  */
+const contactEmail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined
+
 export default function Upgrade() {
   return (
-    <div className="flex-1 p-8 max-w-2xl mx-auto w-full">
+    <div className="mx-auto w-full max-w-3xl flex-1 p-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-bold text-white mb-2">Mindflow Premium</h1>
-        <p className="text-gray-400 mb-6">
-          Le plan gratuit inclut jusqu’à <strong className="text-white">10 générations de plan IA par mois</strong>{' '}
-          (quota mensuel, pour que les testeurs puissent se projeter). Le plan Premium débloque l’
-          <strong className="text-white">exécution des tâches par l’IA</strong> et une gestion de projet complète
-          (évolution prévue : calendrier, plan du jour, « next best action », debrief — voir Mindflow.md).
+        <h1 className="mb-2 text-3xl font-bold text-white">Offres Mindflow</h1>
+        <p className="mb-8 text-gray-400">
+          L’<strong className="text-gray-200">abonnement Premium</strong> et la facturation ne sont{' '}
+          <strong className="text-gray-200">pas disponibles en libre-service</strong> pour l’instant. L’accès aux
+          fonctionnalités payantes se fait <strong className="text-gray-200">sur demande</strong>, au cas par cas.
         </p>
 
-        <div className="rounded-xl border border-amber-500/30 bg-night-blue/60 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-amber-200 mb-2">Freemium</h2>
-          <ul className="text-gray-300 text-sm space-y-2 list-disc list-inside">
-            <li>Jusqu’à 10 générations de plan (planner IA) par mois civil</li>
-            <li>Consultation du graphe, des missions et des tâches</li>
-          </ul>
+        <div className="mb-8 rounded-xl border border-blue-500/25 bg-blue-500/5 p-5">
+          <h2 className="mb-2 text-lg font-semibold text-blue-200">Demander l’accès Premium</h2>
+          <p className="text-sm leading-relaxed text-gray-300">
+            Pour activer un compte Premium ou discuter d’un abonnement, contacte directement{' '}
+            <strong className="text-white">l’équipe Mindflow</strong> (propriétaire du service). Les modalités et la
+            mise à jour de ton compte sont traitées manuellement après accord.
+          </p>
+          {contactEmail ? (
+            <a
+              href={`mailto:${encodeURIComponent(contactEmail)}?subject=${encodeURIComponent('Demande accès Premium — Mindflow')}`}
+              className="mt-4 inline-flex rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500"
+            >
+              Écrire pour demander l’accès
+            </a>
+          ) : (
+            <p className="mt-4 text-sm text-gray-400">
+              Utilise les coordonnées que tu communiques sur ton site ou tes canaux officiels pour joindre l’équipe
+              Mindflow.
+            </p>
+          )}
         </div>
 
-        <div className="rounded-xl border border-blue-500/30 bg-night-blue/60 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-blue-200 mb-2">Premium</h2>
-          <ul className="text-gray-300 text-sm space-y-2 list-disc list-inside">
-            <li>Exécution des tâches par les agents IA</li>
-            <li>Missions illimitées (runs planner)</li>
-            <li>Paiement / abonnement géré par ton merchant (ex. Lemon Squeezy)</li>
-          </ul>
-        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-xl border border-amber-500/35 bg-night-blue/70 p-6">
+            <h2 className="mb-1 text-lg font-semibold text-amber-200">Freemium</h2>
+            <p className="mb-4 text-xs text-amber-200/60">Compte gratuit</p>
+            <ul className="space-y-3 text-sm text-gray-300">
+              <li className="flex gap-2">
+                <span className="text-emerald-400">✓</span>
+                <span>Jusqu’à <strong className="text-gray-200">10 générations de plan IA</strong> par mois (planner)</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-emerald-400">✓</span>
+                <span>Création et consultation des <strong className="text-gray-200">missions</strong>, graphe des tâches, vues calendrier / aujourd’hui</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-emerald-400">✓</span>
+                <span>Validation manuelle des étapes, aide détaillée par tâche, debrief et « prochaine action » (logique locale)</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-gray-500">—</span>
+                <span className="text-gray-500">
+                  Pas d’exécution automatique des tâches par les agents IA (pas d’appels Mistral pour exécuter / compléter les étapes côté serveur)
+                </span>
+              </li>
+            </ul>
+          </div>
 
-        <div className="rounded-xl border border-gray-600/40 bg-night-blue/40 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-3">Comment passer en Premium ?</h2>
-          <div className="text-gray-300 text-sm space-y-4">
-            <div>
-              <p className="font-medium text-gray-200 mb-1">1. Test / développement</p>
-              <p>
-                Dans le <strong className="text-white">SQL Editor</strong> Supabase (projet prod ou test), exécute en
-                remplaçant l’UUID par ton <code className="text-gray-400">user id</code> (voir Auth → Users ou page{' '}
-                <strong className="text-white">Profil</strong> → email) :
-              </p>
-              <pre className="mt-2 p-3 rounded bg-black/40 text-xs text-green-300/90 overflow-x-auto">
-                {`update public.profiles
-set subscription_tier = 'premium'
-where id = 'TON_UUID_UTILISATEUR';`}
-              </pre>
-              <p className="mt-2 text-gray-500">
-                Puis recharge l’app ou clique « Rafraîchir le plan » sur la page Profil.
-              </p>
-            </div>
-            <div>
-              <p className="font-medium text-gray-200 mb-1">2. Production (Lemon Squeezy ou autre merchant)</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-400">
-                <li>Crée un produit / abonnement chez le merchant.</li>
-                <li>
-                  Ajoute l’URL de checkout dans <code className="text-gray-500">VITE_LEMON_CHECKOUT_URL</code> (bouton
-                  ci-dessous).
-                </li>
-                <li>
-                  Configure un <strong className="text-gray-300">webhook</strong> (ex. Edge Function Supabase) qui, sur
-                  paiement validé, exécute le même <code className="text-gray-500">update profiles … premium</code> pour
-                  l’utilisateur concerné (email ou id fourni par le merchant).
-                </li>
-              </ul>
-            </div>
+          <div className="rounded-xl border border-amber-400/40 bg-gradient-to-b from-amber-500/10 to-night-blue/60 p-6">
+            <h2 className="mb-1 text-lg font-semibold text-amber-100">Premium</h2>
+            <p className="mb-4 text-xs text-amber-200/70">Sur demande</p>
+            <ul className="space-y-3 text-sm text-gray-200">
+              <li className="flex gap-2">
+                <span className="text-amber-300">✓</span>
+                <span>
+                  <strong className="text-white">Génération de plans illimitée</strong> (plus de quota mensuel côté planner)
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-300">✓</span>
+                <span>
+                  <strong className="text-white">Exécution des tâches par l’IA</strong> (agents Mistral côté backend pour produire raisonnement / résultats sur les étapes)
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-amber-300">✓</span>
+                <span>Tout ce qui est inclus dans le Freemium (graphe, calendrier, validation utilisateur, etc.)</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {checkoutUrl ? (
-          <a
-            href={checkoutUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors"
-          >
-            Passer à Premium
-          </a>
-        ) : (
-          <p className="text-sm text-gray-500">
-            Configure <code className="text-gray-400">VITE_LEMON_CHECKOUT_URL</code> (ou l’URL de checkout de ton
-            merchant) dans <code className="text-gray-400">.env.local</code>, puis connecte les webhooks pour mettre à
-            jour <code className="text-gray-400">profiles.subscription_tier</code> à{' '}
-            <code className="text-gray-400">premium</code>.
-          </p>
-        )}
+        <p className="mt-10 text-center text-xs text-gray-600">
+          Les droits effectifs de ton compte sont ceux enregistrés pour ton profil après validation d’un accès Premium.
+        </p>
       </motion.div>
     </div>
   )

@@ -38,8 +38,8 @@ PORT=5000
 ```env
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key
-# Optionnel — checkout Lemon Squeezy (ou autre merchant) pour la page Premium
-# VITE_LEMON_CHECKOUT_URL=https://...
+# Optionnel — lien « Demander l’accès » (mailto) sur la page /upgrade
+# VITE_CONTACT_EMAIL=contact@example.com
 ```
 
 ### Base de données (freemium / profils)
@@ -50,7 +50,7 @@ Appliquer les migrations SQL dans le SQL Editor Supabase (dans l’ordre si beso
 - `supabase/migrations/20260320140000_planner_snapshot_task_validation.sql` — `planner_snapshot` (JSON complet du plan IA), `user_validated` sur les tâches  
 - `supabase/migrations/20260320150000_freemium_monthly_ai_quota.sql` — `ai_quota_month` (quota **10** générations de plan / mois, plan gratuit)
 
-Pour tester le **Premium** en local avant webhooks merchant :
+**Développement uniquement** — pour tester le Premium en local (ne jamais publier ces commandes sur une page du site) :
 
 ```sql
 update public.profiles set subscription_tier = 'premium' where id = 'TON_USER_UUID';
