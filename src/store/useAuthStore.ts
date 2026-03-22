@@ -28,7 +28,14 @@ export const useAuthStore = create<AuthState>(() => ({
   },
 
   signUp: async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    /** Sinon Supabase utilise la « Site URL » du dashboard (souvent localhost en dev). */
+    const emailRedirectTo = `${window.location.origin}/auth`
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo },
+    })
     if (error) throw error
 
     const needsConfirmation = !data.session

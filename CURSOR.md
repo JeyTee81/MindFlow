@@ -123,3 +123,10 @@ The goal is **shared understanding**, not authority.
 ---
 
 These rules apply to **all interactions** on this project.
+
+---
+
+## 11. Product & roadmap (Mindflow)
+
+* **Quotas, freemium, règles métier** et **vision long terme** (projets → missions → calendrier, plan du jour, « next best action », debrief) sont documentés dans **`Mindflow.md`**.
+* Avant une **refonte majeure** (nouvelle entité « projet », calendrier, features IA), **valider le périmètre** avec le porteur de produit et mettre à jour `Mindflow.md` en conséquence.

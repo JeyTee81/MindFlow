@@ -3,6 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMissionStore } from '../store/useMissionStore'
 import { useProfileStore } from '../store/useProfileStore'
+import {
+  FREE_MONTHLY_AI_RUNS,
+  effectiveAiRunsUsed,
+  freePlannerRunsRemaining,
+} from '../lib/billing'
 
 export default function Home() {
   const [objective, setObjective] = useState('')
@@ -12,7 +17,11 @@ export default function Home() {
   const navigate = useNavigate()
 
   const canUseFreePlanner =
-    !profile || profile.subscription_tier === 'premium' || profile.ai_runs_used < 1
+    !profile ||
+    profile.subscription_tier === 'premium' ||
+    effectiveAiRunsUsed(profile) < FREE_MONTHLY_AI_RUNS
+
+  const runsLeftFree = profile ? freePlannerRunsRemaining(profile) : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -95,21 +104,33 @@ export default function Home() {
           Quelle est ta mission ?
         </h1>
         <p className="text-center text-gray-400 text-sm mb-8">
-          Plan gratuit : <span className="text-amber-200/90">1 run IA</span> pour générer le plan. L’exécution par
-          l’IA est réservée au{' '}
+          Plan gratuit :{' '}
+          <span className="text-amber-200/90">
+            jusqu’à {FREE_MONTHLY_AI_RUNS} générations de plan / mois
+          </span>{' '}
+          (pour que les testeurs se projètent). L’exécution par l’IA est réservée au{' '}
           <Link to="/upgrade" className="text-blue-300 underline hover:text-blue-200">
             Premium
           </Link>
           .
         </p>
 
+        {profile?.subscription_tier === 'free' && runsLeftFree !== null && (
+          <p className="text-center text-xs text-gray-500 mb-4">
+            Ce mois-ci :{' '}
+            <span className="text-gray-300">
+              {runsLeftFree} / {FREE_MONTHLY_AI_RUNS} génération(s) restante(s)
+            </span>
+          </p>
+        )}
+
         {!canUseFreePlanner && (
           <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            Tu as déjà utilisé ton essai gratuit (1 run IA).{' '}
+            Quota gratuit du mois atteint ({FREE_MONTHLY_AI_RUNS} plans). Réessaie le mois prochain ou{' '}
             <Link to="/upgrade" className="font-semibold underline">
-              Passer à Premium
+              passe en Premium
             </Link>{' '}
-            pour créer de nouvelles missions et exécuter les tâches.
+            pour continuer sans limite côté planner et exécuter les tâches par l’IA.
           </div>
         )}
 

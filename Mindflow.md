@@ -70,10 +70,26 @@ Le comportement visible côté utilisateur correspond aux étapes suivantes :
 
 ### Freemium / Premium (règles produit)
 
-- **Gratuit** : **1 run IA** pour la génération du plan (appel planner dans `create-mission`). Ensuite, plus de nouvelle mission tant que le profil reste `free` avec quota consommé.
-- **Premium** : missions illimitées côté planner ; **exécution des tâches** (`start-execution`) réservée au profil `premium` (vérifié en Edge Function).
+- **Gratuit** : jusqu’à **10 générations de plan IA par mois** (quota mensuel UTC, champs `profiles.ai_runs_used` + `profiles.ai_quota_month`). Permet aux testeurs de créer plusieurs missions et de se projeter. Implémenté dans `create-mission` et `src/lib/billing.ts` (`FREE_MONTHLY_AI_RUNS`).
+- **Premium** : **planner illimité** ; **exécution des tâches** (`start-execution`) réservée au profil `premium` (vérifié en Edge Function).
 - **Merchant** : page `/upgrade` — définir `VITE_LEMON_CHECKOUT_URL` vers l’URL de checkout ; les webhooks du merchant doivent mettre à jour `profiles.subscription_tier` (à brancher).
 - **Navigation** : `/` accueil, `/missions` liste, `/mission/:id` tableau de bord, `/upgrade` offre Premium, `/auth` connexion.
+
+### Vision produit & roadmap (hors périmètre implémenté d’un coup)
+
+Objectif : l’utilisateur **définit un projet** ; l’**IA produit un graphe** qui décompose le travail en **missions** (ou équivalent) ; **chaque mission** dispose de **sa propre page** et de **sa to‑do** (tâches dépendantes). La gestion devient **plus visuelle et immersive** via un **calendrier** : actions à **réaliser par jour**.
+
+**Pistes à prioriser (à valider avant gros chantiers) :**
+
+| Idée | Description |
+|------|-------------|
+| **Plan de journée automatique** | À partir des tâches et contraintes (dépendances, durée estimée), proposer un découpage jour par jour. |
+| **« Next best action »** | Un bouton qui met en avant la prochaine action la plus pertinente (dépendances, urgence, charge). |
+| **Debrief intelligent du jour** | Synthèse en fin de journée : fait / reste / blocages (IA optionnelle). |
+
+**Modèle de données** : introduire éventuellement une entité **Projet** parente des **Missions**, puis des **jalons calendrier** ou **slots** liés aux tâches — à concevoir pour ne pas casser les missions existantes (migration progressive).
+
+**Référence process** : voir `CURSOR.md` — clarifier avant refonte majeure.
 
 ### Limites actuelles côté UX (observables)
 

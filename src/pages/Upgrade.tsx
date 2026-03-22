@@ -12,16 +12,17 @@ export default function Upgrade() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-3xl font-bold text-white mb-2">Mindflow Premium</h1>
         <p className="text-gray-400 mb-6">
-          Le plan gratuit inclut <strong className="text-white">1 run IA</strong> pour générer ton plan de mission.
-          Le plan Premium débloque l’<strong className="text-white">exécution des tâches par l’IA</strong> et une
-          gestion de projet complète (évolution prévue : file de jobs async, suivis).
+          Le plan gratuit inclut jusqu’à <strong className="text-white">10 générations de plan IA par mois</strong>{' '}
+          (quota mensuel, pour que les testeurs puissent se projeter). Le plan Premium débloque l’
+          <strong className="text-white">exécution des tâches par l’IA</strong> et une gestion de projet complète
+          (évolution prévue : calendrier, plan du jour, « next best action », debrief — voir Mindflow.md).
         </p>
 
         <div className="rounded-xl border border-amber-500/30 bg-night-blue/60 p-6 mb-8">
           <h2 className="text-lg font-semibold text-amber-200 mb-2">Freemium</h2>
           <ul className="text-gray-300 text-sm space-y-2 list-disc list-inside">
-            <li>1 génération de plan (planner IA)</li>
-            <li>Consultation du graphe et de la liste des missions</li>
+            <li>Jusqu’à 10 générations de plan (planner IA) par mois civil</li>
+            <li>Consultation du graphe, des missions et des tâches</li>
           </ul>
         </div>
 

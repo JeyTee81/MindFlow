@@ -238,7 +238,7 @@ serve(async (req) => {
         JSON.stringify({
           error: 'PREMIUM_REQUIRED',
           message:
-            "L'exécution des tâches par l'IA est réservée au plan Premium. Ton essai gratuit permet de générer le plan (1 run IA).",
+            "L'exécution des tâches par l'IA est réservée au plan Premium. Le gratuit permet jusqu'à 10 générations de plan par mois.",
         }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient'
 import { getDisplayLabel } from '../lib/displayName'
 import { useAuthStore } from '../store/useAuthStore'
 import { useProfileStore } from '../store/useProfileStore'
+import { FREE_MONTHLY_AI_RUNS, freePlannerRunsRemaining } from '../lib/billing'
 
 export default function Profile() {
   const { session } = useAuthStore()
@@ -67,13 +68,21 @@ export default function Profile() {
             </span>
           </div>
           {profile?.subscription_tier === 'free' && (
-            <p className="text-xs text-gray-500 pt-2">
-              Pour passer en Premium :{' '}
-              <Link to="/upgrade" className="text-blue-300 underline">
-                voir les options
-              </Link>
-              .
-            </p>
+            <>
+              <div className="flex justify-between gap-4 pt-1">
+                <span className="text-gray-500">Plans IA (gratuit)</span>
+                <span className="text-gray-200">
+                  {freePlannerRunsRemaining(profile) ?? 0} / {FREE_MONTHLY_AI_RUNS} ce mois-ci
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 pt-2">
+                Pour passer en Premium :{' '}
+                <Link to="/upgrade" className="text-blue-300 underline">
+                  voir les options
+                </Link>
+                .
+              </p>
+            </>
           )}
         </div>
 

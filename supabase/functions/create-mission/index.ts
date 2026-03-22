@@ -102,26 +102,50 @@ async function restPatchSingle<T>(
   return data?.[0] ?? null
 }
 
-type ProfileRow = { subscription_tier: string; ai_runs_used: number }
+const FREE_MONTHLY_PLANNER_RUNS = 10
+
+function currentQuotaMonthUtc(): string {
+  return new Date().toISOString().slice(0, 7)
+}
+
+type ProfileRow = {
+  subscription_tier: string
+  ai_runs_used: number
+  ai_quota_month: string | null
+}
+
+/** Si on a changé de mois (UTC), remet le compteur à 0 et aligne ai_quota_month. */
+async function ensureMonthlyQuota(userId: string, profile: ProfileRow): Promise<ProfileRow> {
+  const month = currentQuotaMonthUtc()
+  if (profile.ai_quota_month === month) return profile
+  const patched = await restPatchSingle<ProfileRow>('profiles', `id=eq.${userId}`, {
+    ai_runs_used: 0,
+    ai_quota_month: month,
+    updated_at: new Date().toISOString(),
+  })
+  if (!patched) throw new Error('Failed to reset monthly AI quota')
+  return patched
+}
 
 async function getOrCreateProfile(userId: string): Promise<ProfileRow> {
   let rows = await restGet<ProfileRow>(
     'profiles',
-    `id=eq.${userId}&select=subscription_tier,ai_runs_used`
+    `id=eq.${userId}&select=subscription_tier,ai_runs_used,ai_quota_month`
   )
   if (rows.length) return rows[0]
   try {
-    await restInsertSingle<ProfileRow>('profiles', 'select=subscription_tier,ai_runs_used', {
+    await restInsertSingle<ProfileRow>('profiles', 'select=subscription_tier,ai_runs_used,ai_quota_month', {
       id: userId,
       subscription_tier: 'free',
       ai_runs_used: 0,
+      ai_quota_month: null,
     })
   } catch {
     /* ligne créée entre-temps (trigger) ou doublon */
   }
   rows = await restGet<ProfileRow>(
     'profiles',
-    `id=eq.${userId}&select=subscription_tier,ai_runs_used`
+    `id=eq.${userId}&select=subscription_tier,ai_runs_used,ai_quota_month`
   )
   if (!rows.length) throw new Error('Profile not found')
   return rows[0]
@@ -278,13 +302,14 @@ serve(async (req) => {
     const userId = await getUserIdFromAuthHeader(req)
     const objectiveText = objective.trim()
 
-    const profile = await getOrCreateProfile(userId)
-    if (profile.subscription_tier === 'free' && profile.ai_runs_used >= 1) {
+    let profile = await getOrCreateProfile(userId)
+    profile = await ensureMonthlyQuota(userId, profile)
+
+    if (profile.subscription_tier === 'free' && profile.ai_runs_used >= FREE_MONTHLY_PLANNER_RUNS) {
       return new Response(
         JSON.stringify({
           error: 'FREE_AI_RUN_EXHAUSTED',
-          message:
-            'Ton essai gratuit (1 run IA) est terminé. Passe en Premium pour créer de nouvelles missions.',
+          message: `Quota gratuit atteint (${FREE_MONTHLY_PLANNER_RUNS} générations de plan par mois). Réessaie le mois prochain ou passe en Premium.`,
         }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -401,8 +426,10 @@ serve(async (req) => {
     }
 
     if (profile.subscription_tier === 'free') {
+      const month = currentQuotaMonthUtc()
       await restPatchSingle('profiles', `id=eq.${userId}`, {
         ai_runs_used: profile.ai_runs_used + 1,
+        ai_quota_month: month,
         updated_at: new Date().toISOString(),
       })
     }
