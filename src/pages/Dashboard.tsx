@@ -1,9 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import MissionGraph from '../components/MissionGraph'
 import AgentPanel from '../components/AgentPanel'
 import TaskDetailModal from '../components/TaskDetailModal'
+import MissionViewTabs, { type MissionWorkspaceTab } from '../components/MissionViewTabs'
+import MissionCalendarView from '../components/MissionCalendarView'
+import MissionTodayView from '../components/MissionTodayView'
 import { useMissionStore } from '../store/useMissionStore'
 import { useProfileStore } from '../store/useProfileStore'
 
@@ -13,11 +16,16 @@ export default function Dashboard() {
     useMissionStore()
   /** Toujours avant tout return — sinon « Rendered fewer hooks than expected » */
   const isPremium = useProfileStore((s) => s.profile?.subscription_tier === 'premium')
+  const [workspaceTab, setWorkspaceTab] = useState<MissionWorkspaceTab>('graph')
 
   useEffect(() => {
     if (!missionId) return
     void loadMissionById(missionId)
   }, [missionId, loadMissionById])
+
+  useEffect(() => {
+    setWorkspaceTab('graph')
+  }, [missionId])
 
   useEffect(() => {
     if (!currentMission?.id || !missionId) return
@@ -87,8 +95,13 @@ export default function Dashboard() {
           <AgentPanel />
         </motion.div>
 
-        <div className="relative min-h-0 min-w-0 flex-1 flex flex-col">
-          <MissionGraph />
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <MissionViewTabs active={workspaceTab} onChange={setWorkspaceTab} />
+          <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+            {workspaceTab === 'graph' && <MissionGraph />}
+            {workspaceTab === 'calendar' && currentMission && <MissionCalendarView mission={currentMission} />}
+            {workspaceTab === 'today' && currentMission && <MissionTodayView mission={currentMission} />}
+          </div>
         </div>
       </div>
       <TaskDetailModal />

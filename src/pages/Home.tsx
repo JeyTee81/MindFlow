@@ -101,16 +101,16 @@ export default function Home() {
         className="z-10 w-full max-w-2xl px-6"
       >
         <h1 className="text-5xl sm:text-6xl font-bold text-white text-center mb-4">
-          Quelle est ta mission ?
+          Quel est ton projet ?
         </h1>
         <p className="text-center text-gray-400 text-sm mb-8">
-          Plan gratuit :{' '}
+          Plan Freemium :{' '}
           <span className="text-amber-200/90">
-            jusqu’à {FREE_MONTHLY_AI_RUNS} générations de plan / mois
+            {FREE_MONTHLY_AI_RUNS} générations de plan par mois
           </span>{' '}
-          (pour que les testeurs se projètent). L’exécution par l’IA est réservée au{' '}
+          pour l’usage complet et illimité,{' '}
           <Link to="/upgrade" className="text-blue-300 underline hover:text-blue-200">
-            Premium
+            passez en Premium
           </Link>
           .
         </p>

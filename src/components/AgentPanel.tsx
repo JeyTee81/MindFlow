@@ -1,8 +1,14 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useMissionStore } from '../store/useMissionStore'
+import { findNextBestTask, isTaskDoneForFlow } from '../lib/missionInsights'
 
 export default function AgentPanel() {
-  const { currentMission, agents } = useMissionStore()
+  const { currentMission, agents, openTaskDetail } = useMissionStore()
+  const nextBest = useMemo(
+    () => (currentMission ? findNextBestTask(currentMission.tasks) : null),
+    [currentMission]
+  )
 
   const statusColors = {
     idle: 'bg-gray-600',
@@ -26,6 +32,22 @@ export default function AgentPanel() {
           {currentMission?.objective}
         </p>
       </div>
+
+      {nextBest && !isTaskDoneForFlow(nextBest) && (
+        <div className="mb-6 rounded-lg border border-amber-500/35 bg-amber-500/10 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/70">
+            Next best action
+          </p>
+          <p className="mt-1 text-sm font-medium leading-snug text-white line-clamp-2">{nextBest.title}</p>
+          <button
+            type="button"
+            onClick={() => openTaskDetail(nextBest.id)}
+            className="mt-2 w-full rounded-md bg-amber-500/20 py-1.5 text-xs font-medium text-amber-100 ring-1 ring-amber-500/40 hover:bg-amber-500/30"
+          >
+            Ouvrir détails & aide
+          </button>
+        </div>
+      )}
 
       <div className="flex-1">
         <h3 className="text-white text-lg font-semibold mb-4">Agents</h3>

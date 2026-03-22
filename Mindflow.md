@@ -75,21 +75,23 @@ Le comportement visible côté utilisateur correspond aux étapes suivantes :
 - **Merchant** : page `/upgrade` — définir `VITE_LEMON_CHECKOUT_URL` vers l’URL de checkout ; les webhooks du merchant doivent mettre à jour `profiles.subscription_tier` (à brancher).
 - **Navigation** : `/` accueil, `/missions` liste, `/mission/:id` tableau de bord, `/upgrade` offre Premium, `/auth` connexion.
 
-### Vision produit & roadmap (hors périmètre implémenté d’un coup)
+### Vision produit & roadmap
 
-Objectif : l’utilisateur **définit un projet** ; l’**IA produit un graphe** qui décompose le travail en **missions** (ou équivalent) ; **chaque mission** dispose de **sa propre page** et de **sa to‑do** (tâches dépendantes). La gestion devient **plus visuelle et immersive** via un **calendrier** : actions à **réaliser par jour**.
+Objectif : l’utilisateur **définit un projet** ; l’**IA produit un graphe** ; **chaque mission** (instance actuelle = une mission par objectif) a **sa page** avec **to‑do** et vues complémentaires.
 
-**Pistes à prioriser (à valider avant gros chantiers) :**
+#### MVP livré (sans migration SQL)
 
-| Idée | Description |
-|------|-------------|
-| **Plan de journée automatique** | À partir des tâches et contraintes (dépendances, durée estimée), proposer un découpage jour par jour. |
-| **« Next best action »** | Un bouton qui met en avant la prochaine action la plus pertinente (dépendances, urgence, charge). |
-| **Debrief intelligent du jour** | Synthèse en fin de journée : fait / reste / blocages (IA optionnelle). |
+| Fonctionnalité | Implémentation |
+|----------------|----------------|
+| **Calendrier / plan par jour** | Onglet **Calendrier** sur `/mission/:id` — répartition **automatique** : ordre des tâches = ordre planner, **3 tâches / jour** à partir de la date de création de la mission (`src/lib/missionInsights.ts`, `MissionCalendarView.tsx`). |
+| **Next best action (NBA)** | `findNextBestTask` : première tâche dont les prérequis sont cochés / terminés ; priorité à `in_progress`. Bloc **NBA** dans le panneau gauche + onglet **Aujourd’hui** avec bouton vers le détail. |
+| **Debrief du jour** | Texte **règle-based** (pas d’appel Mistral) : objectif, tâches prévues pour la date du jour, fait / reste, rappel NBA, barre de progression (`MissionTodayView.tsx`). |
 
-**Modèle de données** : introduire éventuellement une entité **Projet** parente des **Missions**, puis des **jalons calendrier** ou **slots** liés aux tâches — à concevoir pour ne pas casser les missions existantes (migration progressive).
+**Suite possible** : enregistrer les dates en base, durées estimées, debrief **enrichi par Mistral** (Edge Function), vues semaine type agenda.
 
-**Référence process** : voir `CURSOR.md` — clarifier avant refonte majeure.
+**Modèle de données** : une entité **Projet** parente des **Missions** reste une évolution ultérieure.
+
+**Référence process** : voir `CURSOR.md`.
 
 ### Limites actuelles côté UX (observables)
 
