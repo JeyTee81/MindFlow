@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import { createMistralClient, MISTRAL_MODEL } from './mistralClient.js'
 
 const SYSTEM_PROMPT = `You are a Mission Planner Agent. Your role is to break down high-level objectives into structured, actionable tasks.
 
@@ -24,12 +24,10 @@ Return your response as a JSON object with a "tasks" array:
 Be specific, actionable, and ensure tasks are logically ordered.`
 
 export class MissionPlannerAgent {
-  private openai: OpenAI
+  private client: ReturnType<typeof createMistralClient>
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    this.client = createMistralClient()
   }
 
   async planMission(objective: string): Promise<Array<{
@@ -39,8 +37,8 @@ export class MissionPlannerAgent {
     dependencies: string[]
   }>> {
     try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
+      const response = await this.client.chat.completions.create({
+        model: MISTRAL_MODEL,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `Objective: ${objective}` },
@@ -50,7 +48,7 @@ export class MissionPlannerAgent {
       })
 
       const content = response.choices[0]?.message?.content
-      if (!content) throw new Error('No response from OpenAI')
+      if (!content) throw new Error('No response from Mistral')
 
       const parsed = JSON.parse(content)
       const tasks = parsed.tasks || parsed

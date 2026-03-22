@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, type MouseEvent } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -9,17 +9,21 @@ import ReactFlow, {
   useEdgesState,
   Connection,
   addEdge,
+  ReactFlowProvider,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import TaskNode from './TaskNode'
-import { useMissionStore } from '../store/useMissionStore'
+import { useMissionStore, type Task } from '../store/useMissionStore'
 
 const nodeTypes = {
   task: TaskNode,
 }
 
-export default function MissionGraph() {
-  const { currentMission } = useMissionStore()
+/**
+ * Hooks React Flow doivent être sous ReactFlowProvider — sinon graphe vide.
+ */
+function MissionFlowInner() {
+  const { currentMission, openTaskDetail } = useMissionStore()
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
@@ -28,26 +32,39 @@ export default function MissionGraph() {
     [setEdges]
   )
 
-  useMemo(() => {
-    if (!currentMission) return
+  const onNodeDoubleClick = useCallback(
+    (_e: MouseEvent, node: Node) => {
+      openTaskDetail(node.id)
+    },
+    [openTaskDetail]
+  )
+
+  useEffect(() => {
+    if (!currentMission) {
+      setNodes([])
+      setEdges([])
+      return
+    }
+
+    const statusColors: Record<string, string> = {
+      planned: '#3b82f6',
+      in_progress: '#eab308',
+      completed: '#22c55e',
+    }
 
     const taskNodes: Node[] = currentMission.tasks.map((task, index) => {
-      const statusColors = {
-        planned: '#3b82f6',
-        in_progress: '#eab308',
-        completed: '#22c55e',
-      }
-
+      const st = task.status in statusColors ? task.status : 'planned'
       return {
         id: task.id,
         type: 'task',
         position: {
-          x: (index % 3) * 300 + 100,
-          y: Math.floor(index / 3) * 200 + 100,
+          x: (index % 3) * 320 + 40,
+          y: Math.floor(index / 3) * 220 + 40,
         },
         data: {
           ...task,
-          statusColor: statusColors[task.status],
+          status: st as Task['status'],
+          statusColor: statusColors[st] ?? statusColors.planned,
         },
       }
     })
@@ -78,9 +95,15 @@ export default function MissionGraph() {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
+      onNodeDoubleClick={onNodeDoubleClick}
       nodeTypes={nodeTypes}
+      nodesDraggable={false}
+      nodesConnectable={false}
+      edgesUpdatable={false}
+      elementsSelectable
       fitView
       className="bg-dark-blue"
+      style={{ width: '100%', height: '100%' }}
     >
       <Background color="#1a2332" gap={16} />
       <Controls className="bg-night-blue border-blue-500/20" />
@@ -94,5 +117,15 @@ export default function MissionGraph() {
         }}
       />
     </ReactFlow>
+  )
+}
+
+export default function MissionGraph() {
+  return (
+    <div className="h-full w-full min-h-[320px] md:min-h-[calc(100dvh-7rem)]">
+      <ReactFlowProvider>
+        <MissionFlowInner />
+      </ReactFlowProvider>
+    </div>
   )
 }

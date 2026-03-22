@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import { createMistralClient, MISTRAL_MODEL } from './mistralClient.js'
 
 const SYSTEM_PROMPT = `You are an Analyst Agent. Your role is to analyze mission progress, identify improvements, and suggest iterations.
 
@@ -18,12 +18,10 @@ Your response should include:
 Be analytical, constructive, and forward-thinking.`
 
 export class AnalystAgent {
-  private openai: OpenAI
+  private client: ReturnType<typeof createMistralClient>
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    this.client = createMistralClient()
   }
 
   async analyzeProgress(
@@ -48,8 +46,8 @@ export class AnalystAgent {
         .map((t) => `- ${t.title}`)
         .join('\n')
 
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
+      const response = await this.client.chat.completions.create({
+        model: MISTRAL_MODEL,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           {

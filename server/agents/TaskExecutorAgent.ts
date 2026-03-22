@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import { createMistralClient, MISTRAL_MODEL } from './mistralClient.js'
 
 const SYSTEM_PROMPT = `You are a Task Executor Agent. Your role is to execute specific tasks and provide detailed reasoning for your actions.
 
@@ -16,12 +16,10 @@ Your response should include:
 Be thorough, practical, and explain your reasoning clearly.`
 
 export class TaskExecutorAgent {
-  private openai: OpenAI
+  private client: ReturnType<typeof createMistralClient>
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    this.client = createMistralClient()
   }
 
   async executeTask(
@@ -38,8 +36,8 @@ export class TaskExecutorAgent {
         ? `\n\nContext from previous tasks:\n${context}`
         : ''
 
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
+      const response = await this.client.chat.completions.create({
+        model: MISTRAL_MODEL,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           {

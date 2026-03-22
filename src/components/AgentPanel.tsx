@@ -59,6 +59,17 @@ export default function AgentPanel() {
         </div>
       </div>
 
+      {currentMission?.plannerSnapshot != null && (
+        <details className="mt-4 rounded-lg border border-blue-500/20 bg-dark-blue/50 p-3 text-left">
+          <summary className="cursor-pointer text-xs font-medium text-gray-300">
+            Plan IA (snapshot JSON)
+          </summary>
+          <pre className="mt-2 max-h-48 overflow-auto text-[10px] leading-snug text-gray-500">
+            {JSON.stringify(currentMission.plannerSnapshot, null, 2)}
+          </pre>
+        </details>
+      )}
+
       <div className="mt-6 pt-6 border-t border-blue-500/20">
         <div className="text-gray-400 text-xs space-y-1">
           <p>Status: {currentMission?.status}</p>

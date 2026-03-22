@@ -1,15 +1,18 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { Link, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useMissionStore } from '../store/useMissionStore'
+import { useProfileStore } from '../store/useProfileStore'
 
-interface HomeProps {
-  onStartMission: () => void
-}
-
-export default function Home({ onStartMission }: HomeProps) {
+export default function Home() {
   const [objective, setObjective] = useState('')
   const [loading, setLoading] = useState(false)
   const { createMission } = useMissionStore()
+  const { profile } = useProfileStore()
+  const navigate = useNavigate()
+
+  const canUseFreePlanner =
+    !profile || profile.subscription_tier === 'premium' || profile.ai_runs_used < 1
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,29 +21,59 @@ export default function Home({ onStartMission }: HomeProps) {
     setLoading(true)
     try {
       await createMission(objective)
-      onStartMission()
+      const id = useMissionStore.getState().currentMission?.id
+      if (id) {
+        void useMissionStore.getState().fetchMissionList()
+        navigate(`/mission/${id}`, { replace: true })
+      }
     } catch (error) {
       console.error('Error starting mission:', error)
-      alert('Failed to start mission. Please try again.')
+      const msg =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : 'Échec du démarrage de la mission.'
+      alert(msg)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="w-full h-screen bg-dark-blue flex items-center justify-center relative overflow-hidden">
-      {/* Animated particles background */}
+    <div className="w-full min-h-full flex items-center justify-center relative overflow-hidden py-12">
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dark-blue/95 backdrop-blur-sm px-6"
+          >
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6" />
+            <p className="text-white text-lg font-medium text-center">Génération du plan par l’IA…</p>
+            <p className="text-gray-400 text-sm text-center max-w-md mt-2">
+              C’est souvent <strong className="text-gray-300">30 à 60 secondes</strong>, parfois plus si l’API Mistral
+              est chargée ou si la fonction Edge redémarre (cold start).
+            </p>
+            <p className="text-gray-500 text-xs text-center max-w-md mt-4">
+              Après la première étape, la suite est plus rapide (insertions en base optimisées).
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="absolute inset-0">
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-30"
             initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 600),
             }}
             animate={{
-              y: [null, Math.random() * window.innerHeight],
+              y: [null, Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 600)],
               opacity: [0.3, 0.6, 0.3],
             }}
             transition={{
@@ -58,26 +91,45 @@ export default function Home({ onStartMission }: HomeProps) {
         transition={{ duration: 0.6 }}
         className="z-10 w-full max-w-2xl px-6"
       >
-        <h1 className="text-6xl font-bold text-white text-center mb-12">
-          What is your mission?
+        <h1 className="text-5xl sm:text-6xl font-bold text-white text-center mb-4">
+          Quelle est ta mission ?
         </h1>
+        <p className="text-center text-gray-400 text-sm mb-8">
+          Plan gratuit : <span className="text-amber-200/90">1 run IA</span> pour générer le plan. L’exécution par
+          l’IA est réservée au{' '}
+          <Link to="/upgrade" className="text-blue-300 underline hover:text-blue-200">
+            Premium
+          </Link>
+          .
+        </p>
+
+        {!canUseFreePlanner && (
+          <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            Tu as déjà utilisé ton essai gratuit (1 run IA).{' '}
+            <Link to="/upgrade" className="font-semibold underline">
+              Passer à Premium
+            </Link>{' '}
+            pour créer de nouvelles missions et exécuter les tâches.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <textarea
             value={objective}
             onChange={(e) => setObjective(e.target.value)}
-            placeholder="Ex: Je veux lancer un produit SaaS..."
-            className="w-full h-32 px-6 py-4 bg-night-blue border border-blue-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 resize-none"
+            placeholder="Ex : lancer un produit SaaS…"
+            disabled={!canUseFreePlanner}
+            className="w-full h-32 px-6 py-4 bg-night-blue border border-blue-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 resize-none disabled:opacity-50"
           />
 
           <motion.button
             type="submit"
-            disabled={loading || !objective.trim()}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            disabled={loading || !objective.trim() || !canUseFreePlanner}
+            whileHover={{ scale: canUseFreePlanner ? 1.05 : 1 }}
+            whileTap={{ scale: canUseFreePlanner ? 0.95 : 1 }}
             className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
           >
-            {loading ? 'Starting Mission...' : 'Start Mission'}
+            {loading ? 'Démarrage…' : 'Démarrer la mission'}
           </motion.button>
         </form>
       </motion.div>

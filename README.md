@@ -1,87 +1,92 @@
-# MISSIONFLOW
+# MINDFLOW / Mindflow
 
 Application SaaS permettant de transformer des objectifs en plans d'actions structurés via une architecture multi-agents IA.
 
-## 🚀 Installation
+## Prérequis
 
-### Prérequis
-
-- Node.js 18+ 
+- Node.js 18+
 - npm ou yarn
-- Clé API OpenAI
+- Compte [Supabase](https://supabase.com) (auth + base + Edge Functions)
+- Clé API [Mistral AI](https://console.mistral.ai) (modèle économique pour démo / prod)
 
-### Étapes
-
-1. **Cloner et installer les dépendances**
+## Installation
 
 ```bash
 npm install
 ```
 
-2. **Configurer les variables d'environnement**
+## Variables d'environnement
 
-Créez un fichier `.env` à la racine :
+### Développement local (racine du projet, fichier `.env`)
 
 ```env
-OPENAI_API_KEY=your_openai_api_key_here
+# Mistral (obligatoire si tu utilises le serveur Node/agents en local)
+MISTRAL_API_KEY=your_mistral_api_key
+# Optionnel : défaut = mistral-small-latest
+# MISTRAL_MODEL=mistral-small-latest
+
+# Supabase (si tu fais tourner le backend Express avec persistance Supabase)
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
 PORT=5000
 ```
 
-3. **Lancer l'application**
+### Frontend (Vite) — préfixe `VITE_`
+
+```env
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+# Optionnel — checkout Lemon Squeezy (ou autre merchant) pour la page Premium
+# VITE_LEMON_CHECKOUT_URL=https://...
+```
+
+### Base de données (freemium / profils)
+
+Appliquer les migrations SQL dans le SQL Editor Supabase (dans l’ordre si besoin) :
+
+- `supabase/migrations/20260320120000_profiles_freemium.sql` — profils, RLS, quotas  
+- `supabase/migrations/20260320140000_planner_snapshot_task_validation.sql` — `planner_snapshot` (JSON complet du plan IA), `user_validated` sur les tâches
+
+Pour tester le **Premium** en local avant webhooks merchant :
+
+```sql
+update public.profiles set subscription_tier = 'premium' where id = 'TON_USER_UUID';
+```
+
+### Edge Functions Supabase (secrets)
+
+```bash
+npx supabase secrets set MISTRAL_API_KEY=your_mistral_api_key
+# Optionnel :
+# npx supabase secrets set MISTRAL_MODEL=mistral-small-latest
+```
+
+Les variables `SUPABASE_*` injectées par la plateforme ne se configurent pas avec `supabase secrets set` (noms réservés).
+
+## Lancer l'application en local
 
 ```bash
 npm run dev
 ```
 
-Cela lance simultanément :
-- Frontend sur `http://localhost:3000`
-- Backend sur `http://localhost:5000`
+- Frontend : `http://localhost:3000`
+- Backend Express (si utilisé) : `http://localhost:5000`
 
-## 📁 Structure du Projet
+## Déploiement
 
-```
-missionflow/
-├── src/                    # Frontend React
-│   ├── pages/             # Pages (Home, Dashboard)
-│   ├── components/        # Composants React
-│   ├── store/             # Zustand store
-│   └── App.tsx
-├── server/                # Backend Node.js
-│   ├── agents/           # Agents IA
-│   ├── orchestrator/     # Orchestrateur
-│   ├── routes/           # Routes API
-│   ├── store/            # Stockage missions
-│   └── server.ts
-└── package.json
-```
+- **Frontend** : Vercel (GitHub + variables `VITE_SUPABASE_*`)
+- **Backend logique** : Supabase Edge Functions (`create-mission`, `start-execution`) + secrets `MISTRAL_API_KEY`
 
-## 🤖 Agents IA
+## Stack
 
-### MissionPlannerAgent
-Transforme l'objectif utilisateur en tâches structurées avec dépendances.
+- **Frontend** : React, TypeScript, Vite, React Flow, Framer Motion, Tailwind, Zustand, Supabase Auth
+- **IA** : Mistral AI (API compatible OpenAI), client `openai` avec `baseURL` Mistral côté serveur Node ; `fetch` vers `api.mistral.ai` côté Edge Functions
+- **Données** : Supabase (PostgreSQL + RLS)
 
-### TaskExecutorAgent
-Exécute les tâches et génère du contenu/plans.
+## Agents
 
-### AnalystAgent
-Analyse la progression et propose des améliorations.
-
-## 🎨 Fonctionnalités
-
-- Interface graphique avec React Flow
-- Visualisation en temps réel de l'exécution
-- Raisonnement IA visible pour chaque tâche
-- Animations fluides avec Framer Motion
-- Architecture multi-agents orchestrée
-
-## 🔧 Technologies
-
-- **Frontend**: React, TypeScript, Vite, Framer Motion, React Flow, Tailwind CSS, Zustand
-- **Backend**: Node.js, Express, OpenAI API (GPT-4o)
-- **Stockage**: JSON (fichier)
-
-## 📝 Notes
-
-- Les missions sont sauvegardées dans `server/data/missions.json`
-- Chaque fichier respecte la limite de 200 lignes
-- L'application est prête pour une évolution SaaS
+- **MissionPlannerAgent** : découpe l’objectif en tâches
+- **TaskExecutorAgent** : exécute une tâche
+- **AnalystAgent** : analyse / recommandations
