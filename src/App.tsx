@@ -10,7 +10,7 @@ import Upgrade from './pages/Upgrade'
 
 export default function App() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-[100dvh] min-h-screen w-full flex-1 flex-col">
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
       <Route element={<RequireAuth />}>

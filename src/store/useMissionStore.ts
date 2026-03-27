@@ -15,6 +15,9 @@ export interface Task {
   /** Coché par l’utilisateur : étape considérée comme faite (hors IA) */
   userValidated?: boolean
   dependencies?: string[]
+  /** Grande étape (parcours) */
+  phaseIndex?: number
+  phaseTitle?: string | null
 }
 
 export interface MissionSummary {
@@ -147,7 +150,7 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
       const { data: tasksRows, error: tasksError } = await supabase
         .from('tasks')
         .select(
-          'id, title, description, status, agent, reasoning, result, created_at, user_validated'
+          'id, title, description, status, agent, reasoning, result, created_at, user_validated, phase_index, phase_title'
         )
         .eq('mission_id', missionId)
         .order('created_at', { ascending: true })
@@ -175,17 +178,20 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
 
       const tasksMapped = (tasksRows || []).map((t) => {
         const tr = t as typeof t & { user_validated?: boolean }
-        return {
-          id: tr.id,
-          title: tr.title,
-          description: tr.description,
-          status: tr.status as Task['status'],
-          agent: tr.agent,
-          reasoning: tr.reasoning ?? undefined,
-          result: tr.result ?? undefined,
-          userValidated: Boolean(tr.user_validated),
-          dependencies: dependenciesByTaskId.get(tr.id) || [],
-        }
+          const trExt = tr as typeof tr & { phase_index?: number; phase_title?: string | null }
+          return {
+            id: tr.id,
+            title: tr.title,
+            description: tr.description,
+            status: tr.status as Task['status'],
+            agent: tr.agent,
+            reasoning: tr.reasoning ?? undefined,
+            result: tr.result ?? undefined,
+            userValidated: Boolean(tr.user_validated),
+            dependencies: dependenciesByTaskId.get(tr.id) || [],
+            phaseIndex: trExt.phase_index ?? 0,
+            phaseTitle: trExt.phase_title ?? null,
+          }
       })
 
       const allUserValidated =

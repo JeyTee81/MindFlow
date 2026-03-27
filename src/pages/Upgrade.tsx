@@ -9,7 +9,7 @@ const contactEmail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined
 
 export default function Upgrade() {
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 p-8">
+    <div className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto overflow-x-hidden px-4 py-8 pb-16 sm:px-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="mb-2 text-3xl font-bold text-white">Offres Mindflow</h1>
         <p className="mb-8 text-gray-400">

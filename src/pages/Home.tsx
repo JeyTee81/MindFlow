@@ -50,7 +50,7 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full min-h-full flex items-center justify-center relative overflow-hidden py-12">
+    <div className="relative flex w-full flex-1 flex-col overflow-y-auto overflow-x-hidden px-4 py-10 sm:px-6 sm:py-12">
       <AnimatePresence>
         {loading && (
           <motion.div
@@ -98,9 +98,9 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="z-10 w-full max-w-2xl px-6"
+        className="z-10 mx-auto w-full max-w-2xl px-2 sm:px-6"
       >
-        <h1 className="text-5xl sm:text-6xl font-bold text-white text-center mb-4">
+        <h1 className="mb-4 text-center text-4xl font-bold text-white sm:text-5xl md:text-6xl">
           Quel est ton projet ?
         </h1>
         <p className="text-center text-gray-400 text-sm mb-8">

@@ -13,9 +13,9 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-0 min-h-screen w-full flex-1 flex-col overflow-hidden bg-dark-blue">
-      <header className="shrink-0 border-b border-blue-500/20 bg-night-blue/80 backdrop-blur px-4 py-3 flex items-center justify-between gap-4">
-        <nav className="flex items-center gap-6 text-sm font-medium">
+    <div className="flex min-h-0 min-h-[100dvh] w-full flex-1 flex-col bg-dark-blue">
+      <header className="sticky top-0 z-40 shrink-0 border-b border-blue-500/20 bg-night-blue/90 px-3 py-3 backdrop-blur sm:px-4 flex flex-wrap items-center justify-between gap-3">
+        <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium sm:gap-6 sm:text-sm">
           <Link to="/" className="text-white hover:text-blue-300 transition-colors">
             Nouvelle mission
           </Link>
@@ -46,7 +46,7 @@ export default function AppLayout() {
           </button>
         </div>
       </header>
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-dark-blue">
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden bg-dark-blue [-webkit-overflow-scrolling:touch]">
         <Outlet />
       </main>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import MissionGraph from '../components/MissionGraph'
+import MissionRoadmap from '../components/MissionRoadmap'
 import AgentPanel from '../components/AgentPanel'
 import TaskDetailModal from '../components/TaskDetailModal'
 import MissionViewTabs, { type MissionWorkspaceTab } from '../components/MissionViewTabs'
@@ -16,7 +17,7 @@ export default function Dashboard() {
     useMissionStore()
   /** Toujours avant tout return — sinon « Rendered fewer hooks than expected » */
   const isPremium = useProfileStore((s) => s.profile?.subscription_tier === 'premium')
-  const [workspaceTab, setWorkspaceTab] = useState<MissionWorkspaceTab>('graph')
+  const [workspaceTab, setWorkspaceTab] = useState<MissionWorkspaceTab>('parcours')
 
   useEffect(() => {
     if (!missionId) return
@@ -24,7 +25,7 @@ export default function Dashboard() {
   }, [missionId, loadMissionById])
 
   useEffect(() => {
-    setWorkspaceTab('graph')
+    setWorkspaceTab('parcours')
   }, [missionId])
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-dark-blue">
       {!isPremium && (
-        <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm text-amber-100">
+        <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-xs text-amber-100 sm:text-sm">
           Mode gratuit : le plan est affiché ci-dessous. L’
           <strong>exécution des tâches par l’IA</strong> nécessite le{' '}
           <Link to="/upgrade" className="underline font-medium">
@@ -86,18 +87,19 @@ export default function Dashboard() {
           .
         </div>
       )}
-      <div className="flex min-h-0 flex-1 flex-row overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <motion.div
           initial={{ x: -300 }}
           animate={{ x: 0 }}
-          className="flex w-80 shrink-0 flex-col overflow-y-auto bg-night-blue border-r border-blue-500/20"
+          className="order-2 flex max-h-[38vh] w-full shrink-0 flex-col overflow-y-auto border-t border-blue-500/20 bg-night-blue md:order-1 md:max-h-none md:h-auto md:w-80 md:border-r md:border-t-0"
         >
           <AgentPanel />
         </motion.div>
 
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="relative order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:order-2">
           <MissionViewTabs active={workspaceTab} onChange={setWorkspaceTab} />
-          <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+          <div className="relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch]">
+            {workspaceTab === 'parcours' && currentMission && <MissionRoadmap mission={currentMission} />}
             {workspaceTab === 'graph' && <MissionGraph />}
             {workspaceTab === 'calendar' && currentMission && <MissionCalendarView mission={currentMission} />}
             {workspaceTab === 'today' && currentMission && <MissionTodayView mission={currentMission} />}

@@ -48,7 +48,8 @@ Appliquer les migrations SQL dans le SQL Editor Supabase (dans l’ordre si beso
 
 - `supabase/migrations/20260320120000_profiles_freemium.sql` — profils, RLS, quotas  
 - `supabase/migrations/20260320140000_planner_snapshot_task_validation.sql` — `planner_snapshot` (JSON complet du plan IA), `user_validated` sur les tâches  
-- `supabase/migrations/20260320150000_freemium_monthly_ai_quota.sql` — `ai_quota_month` (quota **10** générations de plan / mois, plan gratuit)
+- `supabase/migrations/20260320150000_freemium_monthly_ai_quota.sql` — `ai_quota_month` (quota **10** générations de plan / mois, plan gratuit)  
+- `supabase/migrations/20260320160000_task_phases.sql` — `phase_index`, `phase_title` (grandes étapes du parcours)
 
 **Développement uniquement** — pour tester le Premium en local (ne jamais publier ces commandes sur une page du site) :
 

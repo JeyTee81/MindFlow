@@ -128,7 +128,7 @@ function MissionFlowInner() {
 
 export default function MissionGraph() {
   return (
-    <div className="h-full w-full min-h-[320px] md:min-h-[calc(100dvh-7rem)]">
+    <div className="h-full min-h-[50vh] w-full min-w-0 flex-1 md:min-h-[calc(100dvh-8rem)]">
       <ReactFlowProvider>
         <MissionFlowInner />
       </ReactFlowProvider>

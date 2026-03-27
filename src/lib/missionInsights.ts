@@ -169,3 +169,27 @@ export function groupTasksByScheduledDay(
 export function sortedDayKeys(ymdKeys: string[]): string[] {
   return [...ymdKeys].sort()
 }
+
+export type PhaseGroup = {
+  phaseIndex: number
+  phaseTitle: string
+  tasks: Task[]
+}
+
+/** Regroupe les tâches par grande étape (phase) pour le parcours « non technique ». */
+export function groupTasksByPhase(tasks: Task[]): PhaseGroup[] {
+  const order = new Map<number, { title: string; tasks: Task[] }>()
+  for (const t of tasks) {
+    const pi = t.phaseIndex ?? 0
+    const title = (t.phaseTitle && t.phaseTitle.trim()) || `Étape ${pi + 1}`
+    if (!order.has(pi)) order.set(pi, { title, tasks: [] })
+    order.get(pi)!.tasks.push(t)
+  }
+  return [...order.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([phaseIndex, v]) => ({
+      phaseIndex,
+      phaseTitle: v.title,
+      tasks: v.tasks,
+    }))
+}

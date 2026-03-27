@@ -2,14 +2,29 @@
  * Lit les métadonnées optionnelles du planner (snapshot JSON) pour une tâche,
  * alignée sur l’ordre des tâches en base (created_at asc).
  */
+function flattenSnapshotTasks(snapshot: { tasks?: unknown; phases?: unknown }): unknown[] {
+  if (Array.isArray(snapshot.tasks) && snapshot.tasks.length > 0) {
+    return snapshot.tasks
+  }
+  if (!Array.isArray(snapshot.phases)) return []
+  const flat: unknown[] = []
+  for (const ph of snapshot.phases) {
+    if (!ph || typeof ph !== 'object') continue
+    const pts = (ph as { tasks?: unknown[] }).tasks
+    if (!Array.isArray(pts)) continue
+    for (const t of pts) flat.push(t)
+  }
+  return flat
+}
+
 export function getPlannerTaskAtIndex(
   snapshot: unknown,
   index: number
 ): Record<string, unknown> | null {
   if (snapshot == null || typeof snapshot !== 'object') return null
-  const raw = snapshot as { tasks?: unknown }
-  const arr = raw.tasks
-  if (!Array.isArray(arr) || index < 0 || index >= arr.length) return null
+  const raw = snapshot as { tasks?: unknown; phases?: unknown }
+  const arr = flattenSnapshotTasks(raw)
+  if (index < 0 || index >= arr.length) return null
   const t = arr[index]
   if (!t || typeof t !== 'object') return null
   return t as Record<string, unknown>

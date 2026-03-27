@@ -1,16 +1,34 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 
-const SYSTEM_MISSION_PLANNER = `You are a Mission Planner Agent. Your role is to break down high-level objectives into structured, actionable tasks.
-When given an objective, you must:
-1. Analyze the objective briefly
-2. Break it down into 5-8 specific, sequential tasks (prefer fewer, clearer tasks — speed matters)
-3. Identify dependencies between tasks (use "dependencies" as 0-based indexes into the tasks array, e.g. ["index-0"] for the first task)
-4. Assign each task to TaskExecutor or Analyst
-5. Short descriptions (1-3 sentences per task)
-6. For EACH task, add a "guidance" field: 4-7 lines in French with concrete, actionable tips (what to search, what to deliver, pitfalls to avoid). Plain text or short bullet lines.
+const SYSTEM_MISSION_PLANNER = `You are a friendly project coach for NON-experts (no algorithms, no jargon). Output JSON ONLY.
 
-Return your response as a JSON object with a "tasks" array only — no extra text.
-Each task object must include at least: title, description, agent, dependencies (array), guidance.`
+Return this shape:
+{
+  "phases": [
+    {
+      "title": "Short name of this BIG step (max 8 words, plain language)",
+      "summary": "One sentence: why this phase matters",
+      "tasks": [
+        {
+          "title": "Small concrete action (15–40 minutes)",
+          "description": "1–2 short sentences, simple words",
+          "agent": "TaskExecutor" or "Analyst",
+          "dependencies": ["index-0"],
+          "guidance": "4–7 lines in French: concrete tips, pitfalls, what to deliver"
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- 3 to 5 phases (big milestones). Each phase has 2 to 4 sub-tasks.
+- Total sub-tasks about 9–15 so the user can spread ~3 SIMPLE actions per day (motivation).
+- Each sub-task must be doable without technical / CS background.
+- "dependencies" uses GLOBAL indices: list ALL sub-tasks in order (phase1 tasks, then phase2, …). First task = index 0. Use strings like "index-0", "index-1". Usually the first task in a phase depends on the last task of the previous phase (if any).
+- French for guidance; titles/descriptions can be French or bilingual short — prefer French if one language.
+
+No markdown outside JSON. No extra keys at root except "phases".`
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -247,6 +265,69 @@ function parsePlannerJson(content: string): unknown {
   }
 }
 
+type FlatPlannerTask = {
+  title: string
+  description: string
+  agent: string | null
+  dependencies: string[]
+  guidance?: string
+  phase_index: number
+  phase_title: string | null
+}
+
+/** Nouveau format "phases" ou ancien tableau "tasks" (rétrocompat). */
+function extractFlattenedTasks(parsed: Record<string, unknown>): FlatPlannerTask[] {
+  const phases = parsed.phases
+  if (Array.isArray(phases) && phases.length > 0) {
+    const out: FlatPlannerTask[] = []
+    let pi = 0
+    for (const phase of phases) {
+      const ph = phase as { title?: unknown; tasks?: unknown[] }
+      const phaseTitle =
+        ph.title != null && String(ph.title).trim() !== ''
+          ? String(ph.title).trim()
+          : `Étape ${pi + 1}`
+      const phaseTasks = Array.isArray(ph.tasks) ? ph.tasks : []
+      for (const t of phaseTasks) {
+        const pt = t as Record<string, unknown>
+        const depsRaw = pt.dependencies
+        const deps = Array.isArray(depsRaw) ? depsRaw.map((x) => String(x)) : []
+        out.push({
+          title: String(pt.title ?? ''),
+          description: pt.description != null ? String(pt.description) : '',
+          agent: pt.agent ? String(pt.agent) : null,
+          dependencies: deps,
+          guidance: pt.guidance != null ? String(pt.guidance) : undefined,
+          phase_index: pi,
+          phase_title: phaseTitle,
+        })
+      }
+      pi++
+    }
+    if (out.length === 0) throw new Error('Planner returned empty phases')
+    return out
+  }
+
+  const legacy = parsed.tasks
+  if (!Array.isArray(legacy) || legacy.length === 0) {
+    throw new Error('Planner returned invalid tasks format')
+  }
+  return legacy.map((t: unknown) => {
+    const pt = t as Record<string, unknown>
+    const depsRaw = pt.dependencies
+    const deps = Array.isArray(depsRaw) ? depsRaw.map((x) => String(x)) : []
+    return {
+      title: String(pt.title ?? ''),
+      description: pt.description != null ? String(pt.description) : '',
+      agent: pt.agent ? String(pt.agent) : null,
+      dependencies: deps,
+      guidance: pt.guidance != null ? String(pt.guidance) : undefined,
+      phase_index: 0,
+      phase_title: null,
+    }
+  })
+}
+
 async function getUserIdFromAuthHeader(req: Request): Promise<string> {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader?.startsWith('Bearer ')) {
@@ -337,9 +418,12 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    const tasks = parsed.tasks || parsed
-    if (!Array.isArray(tasks)) {
-      return new Response(JSON.stringify({ error: 'Planner returned invalid tasks format' }), {
+
+    let flatTasks: FlatPlannerTask[]
+    try {
+      flatTasks = extractFlattenedTasks(parsed as Record<string, unknown>)
+    } catch (e) {
+      return new Response(JSON.stringify({ error: (e as Error).message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -359,16 +443,18 @@ serve(async (req) => {
     })
 
     // 3) Create tasks (insert groupé = 1 aller-retour HTTP au lieu de N)
-    const taskRows = (tasks as any[]).map((pt) => ({
+    const taskRows = flatTasks.map((pt) => ({
       mission_id: missionRow.id,
-      title: String(pt.title || ''),
-      description: pt.description != null ? String(pt.description) : '',
+      title: pt.title,
+      description: pt.description,
       status: 'planned',
-      agent: pt.agent ? String(pt.agent) : null,
+      agent: pt.agent,
+      phase_index: pt.phase_index,
+      phase_title: pt.phase_title,
     }))
 
     const createdTasks = await restInsertMany<{ id: string }>('tasks', 'select=id', taskRows)
-    if (createdTasks.length !== tasks.length) {
+    if (createdTasks.length !== flatTasks.length) {
       throw new Error('Bulk task insert count mismatch')
     }
 
@@ -380,20 +466,24 @@ serve(async (req) => {
       status: 'planned'
       agent: string | null
       dependencies: string[]
-    }> = (tasks as any[]).map((pt, index) => ({
+      phaseIndex: number
+      phaseTitle: string | null
+    }> = flatTasks.map((pt, index) => ({
       id: taskIdByIndex[index],
-      title: String(pt.title || ''),
-      description: pt.description != null ? String(pt.description) : '',
+      title: pt.title,
+      description: pt.description,
       status: 'planned' as const,
-      agent: pt.agent ? String(pt.agent) : null,
+      agent: pt.agent,
       dependencies: [] as string[],
+      phaseIndex: pt.phase_index,
+      phaseTitle: pt.phase_title,
     }))
 
     // 4) Task dependencies — insert groupé
     const depRows: Record<string, unknown>[] = []
     const depSeen = new Set<string>()
-    for (let index = 0; index < tasks.length; index++) {
-      const pt = tasks[index] as any
+    for (let index = 0; index < flatTasks.length; index++) {
+      const pt = flatTasks[index]
       const currentTaskId = taskIdByIndex[index]
 
       const dependencyIndexes = (pt.dependencies || [])
@@ -443,6 +533,8 @@ serve(async (req) => {
         tasks: tasksForResponse.map((t) => ({
           ...t,
           agent: t.agent ?? '',
+          phaseIndex: t.phaseIndex,
+          phaseTitle: t.phaseTitle,
         })),
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
