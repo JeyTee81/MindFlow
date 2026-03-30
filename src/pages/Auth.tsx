@@ -79,12 +79,12 @@ export default function Auth() {
         transition={{ duration: 0.6 }}
         className="z-10 w-full max-w-md px-6"
       >
-        <div className="mb-5 flex justify-center px-1">
-          <div className="rounded-md bg-white/95 px-1.5 py-1 ring-1 ring-white/20 sm:px-2 sm:py-1.5">
+        <div className="mb-6 flex justify-center px-1">
+          <div className="rounded-md bg-white/95 px-2 py-1.5 ring-1 ring-white/20 sm:px-3 sm:py-2">
             <img
               src={mindflowLogo}
               alt="Mindflow"
-              className="h-9 w-auto max-h-11 max-w-[min(85vw,10rem)] object-contain object-center sm:h-10 sm:max-w-[11rem] md:h-11 md:max-w-[12rem]"
+              className="h-[4.5rem] w-auto max-h-24 max-w-[min(90vw,20rem)] object-contain object-center sm:h-20 sm:max-w-[22rem] md:h-[5.5rem] md:max-w-[24rem]"
             />
           </div>
         </div>

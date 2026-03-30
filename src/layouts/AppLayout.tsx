@@ -19,13 +19,13 @@ export default function AppLayout() {
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 sm:gap-6">
           <Link
             to="/"
-            className="shrink-0 rounded-md bg-white/95 px-1.5 py-1 ring-1 ring-white/20 transition-opacity hover:opacity-90"
+            className="shrink-0 rounded-md bg-white/95 px-2 py-1.5 ring-1 ring-white/20 transition-opacity hover:opacity-90"
             title="Accueil"
           >
             <img
               src={mindflowLogo}
               alt="Mindflow"
-              className="h-6 w-auto max-h-8 max-w-[7rem] object-contain object-center sm:h-7 sm:max-w-[8rem] md:h-8 md:max-w-[9rem]"
+              className="h-12 w-auto max-h-16 max-w-[14rem] object-contain object-center sm:h-14 sm:max-w-[16rem] md:h-16 md:max-w-[18rem]"
             />
           </Link>
           <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium sm:gap-6 sm:text-sm">
