@@ -1,4 +1,5 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom'
+import mindflowLogo from '../../datas/1768285630428.jpg'
 import { getDisplayLabel } from '../lib/displayName'
 import { useAuthStore } from '../store/useAuthStore'
 
@@ -15,7 +16,19 @@ export default function AppLayout() {
   return (
     <div className="flex min-h-0 min-h-[100dvh] w-full flex-1 flex-col bg-dark-blue">
       <header className="sticky top-0 z-40 shrink-0 border-b border-blue-500/20 bg-night-blue/90 px-3 py-3 backdrop-blur sm:px-4 flex flex-wrap items-center justify-between gap-3">
-        <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium sm:gap-6 sm:text-sm">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 sm:gap-6">
+          <Link
+            to="/"
+            className="shrink-0 rounded-md bg-white/95 px-1.5 py-1 ring-1 ring-white/20 transition-opacity hover:opacity-90"
+            title="Accueil"
+          >
+            <img
+              src={mindflowLogo}
+              alt="Mindflow"
+              className="h-6 w-auto max-h-8 max-w-[7rem] object-contain object-center sm:h-7 sm:max-w-[8rem] md:h-8 md:max-w-[9rem]"
+            />
+          </Link>
+          <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium sm:gap-6 sm:text-sm">
           <Link to="/" className="text-white hover:text-blue-300 transition-colors">
             Nouvelle mission
           </Link>
@@ -28,7 +41,8 @@ export default function AppLayout() {
           <Link to="/profile" className="text-white hover:text-blue-300 transition-colors">
             Profil
           </Link>
-        </nav>
+          </nav>
+        </div>
         <div className="flex items-center gap-3 text-sm text-gray-300">
           <Link
             to="/profile"

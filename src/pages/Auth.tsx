@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import mindflowLogo from '../../datas/1768285630428.jpg'
 import { useAuthStore } from '../store/useAuthStore'
 
 type Mode = 'login' | 'signup'
@@ -78,6 +79,15 @@ export default function Auth() {
         transition={{ duration: 0.6 }}
         className="z-10 w-full max-w-md px-6"
       >
+        <div className="mb-5 flex justify-center px-1">
+          <div className="rounded-md bg-white/95 px-1.5 py-1 ring-1 ring-white/20 sm:px-2 sm:py-1.5">
+            <img
+              src={mindflowLogo}
+              alt="Mindflow"
+              className="h-9 w-auto max-h-11 max-w-[min(85vw,10rem)] object-contain object-center sm:h-10 sm:max-w-[11rem] md:h-11 md:max-w-[12rem]"
+            />
+          </div>
+        </div>
         <h1 className="text-3xl font-bold text-white text-center mb-6">
           {mode === 'signup' ? 'Create account' : 'Sign in'}
         </h1>
